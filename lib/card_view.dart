@@ -21,7 +21,7 @@ class CardView extends StatelessWidget {
         children: [
           Card(
             shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(topRight: Radius.circular(40),bottomRight: Radius.circular(40)),
+              borderRadius: BorderRadius.only(bottomRight: Radius.circular(40)),
             ),
             color: Colors.white70,
             child: Padding(
@@ -31,7 +31,7 @@ class CardView extends StatelessWidget {
                 textAlign: TextAlign.left,
                 style: const TextStyle(
                   color: Colors.black87,
-                  fontSize: 22.0,
+                  fontSize: 12.0,
                 ),
               ),
             ),
@@ -44,14 +44,18 @@ class CardView extends StatelessWidget {
                 children: [
                   Text(
                     _title,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
-                        fontSize: 22),
+                        fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   Text(
                     _url,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.normal,
+                        color: Colors.black87,
+                        fontSize: 10),
                     textAlign: TextAlign.center,
                   ),
                 ],
