@@ -1,12 +1,15 @@
 import 'dart:html';
 import 'dart:ui';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:web_app_for_crawler/html_parser.dart';
 import 'package:web_app_for_crawler/model/movie_model.dart';
 import 'package:web_app_for_crawler/not_found_page.dart';
+import 'package:web_app_for_crawler/widgets/home_top_view.dart';
 
 import 'card_view.dart';
 
@@ -22,12 +25,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'IMDB Crawled Releases',
+      title: 'IMBD CRAWLER',
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
+        primarySwatch: Colors.blueGrey,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/',
+      initialRoute: '/home',
       onGenerateRoute: (page) {
         // print(page.name);
         return MaterialPageRoute(builder: (context) {
@@ -54,8 +57,8 @@ class RouteController extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (pageName == '/') {
-      return MyHomePage(title: 'IMDB Crawled Releases');
+    if (pageName == '/home') {
+      return MyHomePage(title: 'IMBD CRAWLER');
     } else {
       return NotFoundPage();
     }
@@ -74,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget buildMovieList(
       BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
     double width = MediaQuery.of(context).size.width;
-    int widthCard = (250);
+    int widthCard = (350);
     int countRow = width ~/ widthCard;
 
     if (snapshot.hasData) {
@@ -84,25 +87,25 @@ class _MyHomePageState extends State<MyHomePage> {
         itemCount: snapshot.data!.docs.length,
         itemBuilder: (context, index) {
           DocumentSnapshot movie = snapshot.data!.docs[index];
-
           var df =
               DateFormat('MM-dd-yyyy').format(movie['releaseDate'].toDate());
 
-          Movie m = Movie(movie['title'], movie['url'], df, movie['htmlPage']);
+          Movie m = Movie(movie['title'], movie['url'], df, movie['htmlPage'],
+              movie['posterUrl']);
 
           return GestureDetector(
-            onTap: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (context) => HelpScreen(m)));
-            },
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(40), bottom: Radius.circular(40)),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: CardView(m.releaseDate.toString(), m.title, m.url),
+              onTap: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => HelpScreen(m)));
+              },
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(40), bottom: Radius.circular(40)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: CardView(m.releaseDate.toString(), m.title, m.url, m.posterUrl),
+                ),
               ),
-            ),
           );
         },
       );
@@ -121,15 +124,55 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),centerTitle: true,
-        ),
-        body: FutureBuilder(
-          future: FirebaseFirestore.instance
-              .collection('movies')
-              .orderBy('releaseDate', descending: false)
-              .get(),
-          builder: buildMovieList,
-        ));
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            pinned: true,
+            snap: false,
+            floating: false,
+            elevation: 0,
+            expandedHeight: 290.0,
+            flexibleSpace: Center(
+              child: FlexibleSpaceBar(
+                title: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: AnimatedTextKit(
+                      animatedTexts: [
+                        TypewriterAnimatedText(
+                          widget.title,
+                          textAlign: TextAlign.justify,
+                          textStyle: GoogleFonts.robotoCondensed(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.w400),
+                          speed: const Duration(milliseconds: 100),
+                        ),
+                      ],
+                      totalRepeatCount: 2,
+                      pause: const Duration(milliseconds: 1000),
+                      displayFullTextOnTap: true,
+                      stopPauseOnTap: true,
+                    ),
+                  ),
+                ),
+                background: const HomeTopViewWidget(),
+              ),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: FutureBuilder(
+              future: FirebaseFirestore.instance
+                  .collection('movies')
+                  .orderBy('releaseDate', descending: false)
+                  .get(),
+              builder: buildMovieList,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
